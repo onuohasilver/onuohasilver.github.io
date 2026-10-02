@@ -47,6 +47,7 @@
             'It goes out to approved providers and the first to accept takes it.',
       stack: 'Fastify · Postgres · Paystack',
       shot: 'img/crow.webp',
+      link: 'crow.ng',
       mark: '<circle cx="9" cy="20" r="3.4"/><path d="M15 20h7"/>' +
             '<path d="M14.6 17.6 22 10.5"/><path d="M14.6 22.4 22 29.5"/>' +
             '<circle cx="26" cy="20" r="2.2"/><circle cx="25" cy="8.5" r="2.2"/>' +
@@ -59,6 +60,7 @@
             'escrow until the brand approves, then the post is tracked across four platforms.',
       stack: 'Next.js · Drizzle · Paystack',
       shot: 'img/creatormarkt.webp',
+      link: 'creatormarkt.app',
       mark: '<circle cx="7.5" cy="20" r="3.6"/><circle cx="32.5" cy="20" r="3.6"/>' +
             '<rect x="15" y="14.5" width="10" height="11" rx="2"/>' +
             '<path d="M11.2 20h3.6M25.2 20h3.6"/><path d="M20 18.2v3.4"/>'
