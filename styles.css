@@ -12,6 +12,13 @@
 
   --measure: 33rem;
   --step:    1.6em;
+
+  /* Behind product names. Not an underline — underlined prose reads as a
+     link, and these aren't clickable. */
+  --wash: rgba(168, 67, 31, 0.12);
+
+  /* The built-in curves are too weak to read as deliberate. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +28,7 @@
     --muted:  #918c84;
     --rule:   #2b2926;
     --accent: #e08a62;
+    --wash:   rgba(224, 138, 98, 0.17);
   }
   body { font-weight: 380; }
 }
@@ -57,6 +65,8 @@ header { margin-bottom: calc(var(--step) * 1.75); }
 
 h1 {
   margin: 0;
+  width: fit-content;
+  max-width: 100%;
   font-size: clamp(1.5rem, 1.2rem + 1.4vw, 1.9rem);
   font-weight: 400;
   letter-spacing: -0.012em;
@@ -87,10 +97,22 @@ p {
   letter-spacing: -0.006em;
 }
 
-/* Product names. Weight, not bluster. */
+/* Product names. Weight, not bluster — over a wash that wipes itself in. */
 b {
+  position: relative;
+  z-index: 0;
   font-weight: 500;
   letter-spacing: 0.002em;
+}
+
+b::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -0.08em -0.1em -0.02em;
+  border-radius: 2px;
+  background: var(--wash);
+  transform-origin: 0 50%;
 }
 
 a {
@@ -99,16 +121,30 @@ a {
   text-decoration-color: var(--rule);
   text-decoration-thickness: 0.055em;
   text-underline-offset: 0.2em;
-  transition: color 160ms ease, text-decoration-color 160ms ease;
+  transition:
+    color 180ms ease,
+    opacity 180ms ease,
+    text-decoration-color 180ms ease,
+    text-underline-offset 200ms var(--ease-out);
 }
 
-a:hover,
+/* Touch fires a false hover on tap, so motion stays behind a real pointer. */
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+    text-underline-offset: 0.26em;
+  }
+}
+
+a:active {
+  color: var(--accent);
+  opacity: 0.6;
+  transition-duration: 80ms;
+}
+
 a:focus-visible {
   color: var(--accent);
-  text-decoration-color: currentColor;
-}
-
-a:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 0.25em;
   border-radius: 1px;
@@ -135,25 +171,135 @@ footer p {
 
 footer a { color: var(--ink); }
 
-/* ── Entrance ───────────────────────────────────────────── */
+/* ── Scroll rail ────────────────────────────────────────── */
+/* Pure CSS scroll-driven, so it runs off the main thread. Where
+   animation-timeline isn't supported it stays at scaleX(0) — invisible,
+   which is the right failure. */
 
-@media (prefers-reduced-motion: no-preference) {
-  main > * {
-    animation: rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  main > *:nth-child(1) { animation-delay:  40ms; }
-  main > *:nth-child(2) { animation-delay: 130ms; }
-  main > *:nth-child(3) { animation-delay: 190ms; }
-  main > *:nth-child(4) { animation-delay: 240ms; }
-  main > *:nth-child(5) { animation-delay: 285ms; }
-  main > *:nth-child(6) { animation-delay: 325ms; }
-  main > *:nth-child(7) { animation-delay: 360ms; }
-  main > *:nth-child(n + 8) { animation-delay: 390ms; }
+.progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 10;
+}
 
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(0.5rem); }
-    to   { opacity: 1; transform: none; }
+@supports (animation-timeline: scroll()) {
+  .progress {
+    animation: progress linear both;
+    animation-timeline: scroll(root block);
   }
+}
+
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Arrival ────────────────────────────────────────────── */
+/* Hidden only while JS is confirmed live: the head script sets .js and
+   clears it again if motion.js never checks in, so a failed script can
+   never leave the page blank. */
+
+.js main > *:not(.lede) { opacity: 0; }
+
+.js main > *.in:not(.lede) {
+  animation: rise 640ms var(--ease-out) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(0.6rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The lede resolves word by word, so the block itself must not also move. */
+.js .lede .w {
+  display: inline-block;
+  opacity: 0;
+}
+
+.js .lede.in .w {
+  animation: word 480ms var(--ease-out) both;
+  animation-delay: calc(var(--delay, 0ms) + var(--i) * 16ms);
+}
+
+@keyframes word {
+  from { opacity: 0; transform: translateY(0.42em); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The wash is drawn across a product name once its paragraph has landed. */
+.js b::after { transform: scaleX(0); }
+
+.js .in b::after {
+  animation: draw 520ms var(--ease-out) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── The name, on hover ─────────────────────────────────── */
+/* A single accent wipe across the text. One element, no letter spans,
+   so selection and screen readers are untouched. */
+
+@media (hover: hover) and (pointer: fine) {
+  h1 {
+    background-image: linear-gradient(
+      100deg,
+      var(--accent) 0 46%,
+      var(--ink)   54% 100%
+    );
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    transition: background-position 560ms var(--ease-out);
+  }
+
+  h1:hover { background-position: 0 0; }
+}
+
+/* Never let the clip trick swallow the name. */
+@media (forced-colors: active) {
+  h1 {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+  }
+  b::after { display: none; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────── */
+/* Fewer and gentler, not none: the page still resolves, it just doesn't
+   travel. Declared in CSS as well as JS so it holds even in the gap
+   before the script runs. */
+
+@media (prefers-reduced-motion: reduce) {
+  .js main > *,
+  .js .lede .w {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .js b::after,
+  .js .in b::after {
+    animation: none !important;
+    transform: scaleX(1) !important;
+  }
+
+  .progress { animation: none; }
+
+  a { transition: color 120ms ease, opacity 120ms ease; }
+  h1 { transition: none; }
 }
 
 /* ── Print ──────────────────────────────────────────────── */
@@ -161,7 +307,18 @@ footer a { color: var(--ink); }
 @media print {
   :root { --bg: #fff; --ink: #000; --muted: #444; --rule: #bbb; --accent: #000; }
   body { padding: 0; font-size: 11pt; }
-  main > * { animation: none; }
+  .progress { display: none; }
+
+  .js main > *,
+  .js .lede .w {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .js b::after { transform: scaleX(1) !important; animation: none !important; }
+
+  h1 { background: none; color: #000; -webkit-text-fill-color: #000; }
   a { text-decoration-color: var(--rule); }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: var(--muted); }
 }
