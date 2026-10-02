@@ -70,8 +70,9 @@
       kind: 'Modelling',
       desc: 'Prices football markets from its own models, flags the ones the ' +
             'bookmaker has wrong, and sizes the stake so a cold week survives.',
-      stack: 'FastAPI · APScheduler · Twilio',
+      stack: 'Next.js · Supabase · Telegram',
       shot: 'img/betprophet.webp',
+      link: 'betprophet.app',
       mark: '<path d="M4 30c8 0 7-18 16-18s8 18 16 18"/><path d="M28 30.5V19.5"/>' +
             '<circle cx="28" cy="17" r="2.2"/>'
     }

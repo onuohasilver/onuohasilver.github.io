@@ -261,9 +261,13 @@ footer a { color: var(--ink); }
 
 b[data-proj] { cursor: help; }
 
-/* Touch has no hover, so the press itself has to answer. */
-b[data-proj]::after { transition: background-color 120ms ease; }
-b[data-proj]:active::after { background: var(--wash-press); }
+/* Touch has no hover, so the press itself has to answer. Applies to any
+   tagged name, linked or not. */
+b[data-proj]::after,
+a[data-proj]::after { transition: background-color 120ms ease; }
+
+b[data-proj]:active::after,
+a[data-proj]:active::after { background: var(--wash-press); }
 
 /* A project with a public home is a real link: it keeps the underline, so
    the wash alone never promises something clickable. */
