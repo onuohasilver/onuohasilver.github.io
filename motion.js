@@ -34,6 +34,8 @@
       desc: 'Chain HTTP calls on a canvas so the ids and tokens each step ' +
             'returns feed the next. Save one and it runs in CI as a regression test.',
       stack: 'React Flow · Express · Zustand',
+      shot: 'img/journey.webp',
+      link: 'github.com/onuohasilver/journey-studio',
       mark: '<circle cx="8" cy="11" r="3.6"/><circle cx="31" cy="8" r="3.6"/>' +
             '<circle cx="25" cy="30" r="3.6"/><path d="M11.5 10.4 27.5 8.4"/>' +
             '<path d="M30.2 11.5 26 26.5"/>'
@@ -44,6 +46,7 @@
       desc: 'Describe a job in Telegram, in English or Pidgin, typed or spoken. ' +
             'It goes out to approved providers and the first to accept takes it.',
       stack: 'Fastify · Postgres · Paystack',
+      shot: 'img/crow.webp',
       mark: '<circle cx="9" cy="20" r="3.4"/><path d="M15 20h7"/>' +
             '<path d="M14.6 17.6 22 10.5"/><path d="M14.6 22.4 22 29.5"/>' +
             '<circle cx="26" cy="20" r="2.2"/><circle cx="25" cy="8.5" r="2.2"/>' +
@@ -55,6 +58,7 @@
       desc: 'Brands hire creators for video and photo work. The budget waits in ' +
             'escrow until the brand approves, then the post is tracked across four platforms.',
       stack: 'Next.js · Drizzle · Paystack',
+      shot: 'img/creatormarkt.webp',
       mark: '<circle cx="7.5" cy="20" r="3.6"/><circle cx="32.5" cy="20" r="3.6"/>' +
             '<rect x="15" y="14.5" width="10" height="11" rx="2"/>' +
             '<path d="M11.2 20h3.6M25.2 20h3.6"/><path d="M20 18.2v3.4"/>'
@@ -65,12 +69,13 @@
       desc: 'Prices football markets from its own models, flags the ones the ' +
             'bookmaker has wrong, and sizes the stake so a cold week survives.',
       stack: 'FastAPI · APScheduler · Twilio',
+      shot: 'img/betprophet.webp',
       mark: '<path d="M4 30c8 0 7-18 16-18s8 18 16 18"/><path d="M28 30.5V19.5"/>' +
             '<circle cx="28" cy="17" r="2.2"/>'
     }
   };
 
-  var triggers = [].slice.call(document.querySelectorAll('b[data-proj]'));
+  var triggers = [].slice.call(document.querySelectorAll('[data-proj]'));
 
   if (triggers.length && window.matchMedia) {
     var card = document.createElement('div');
@@ -85,13 +90,20 @@
     function fill(key) {
       var p = PROJECTS[key];
       card.innerHTML =
-        '<div class="peek-head">' +
-          '<svg class="peek-mark" viewBox="0 0 40 40" aria-hidden="true">' + p.mark + '</svg>' +
-          '<span class="peek-id"><span class="peek-title">' + p.title + '</span>' +
-          '<span class="peek-kind">' + p.kind + '</span></span>' +
-        '</div>' +
-        '<p class="peek-desc">' + p.desc + '</p>' +
-        '<p class="peek-stack">' + p.stack + '</p>';
+        (p.shot
+          ? '<img class="peek-shot" src="' + p.shot + '" alt="" width="640" height="360" decoding="async">'
+          : '') +
+        '<div class="peek-body">' +
+          '<div class="peek-head">' +
+            '<svg class="peek-mark" viewBox="0 0 40 40" aria-hidden="true">' + p.mark + '</svg>' +
+            '<span class="peek-id"><span class="peek-title">' + p.title + '</span>' +
+            '<span class="peek-kind">' + p.kind + '</span></span>' +
+          '</div>' +
+          '<p class="peek-desc">' + p.desc + '</p>' +
+          '<p class="peek-stack">' + p.stack +
+            (p.link ? '<span class="peek-link">' + p.link + ' \u2197</span>' : '') +
+          '</p>' +
+        '</div>';
     }
 
     function place(trigger) {
@@ -128,14 +140,14 @@
       card.classList.remove('measuring');
       card.classList.add('on');
       trigger.setAttribute('aria-describedby', 'peek');
-      trigger.setAttribute('aria-expanded', 'true');
+      if (trigger.tagName !== 'A') trigger.setAttribute('aria-expanded', 'true');
     }
 
     function hide() {
       clearTimeout(showTimer);
       if (!open) return;
       open.removeAttribute('aria-describedby');
-      open.setAttribute('aria-expanded', 'false');
+      if (open.tagName !== 'A') open.setAttribute('aria-expanded', 'false');
       open = null;
       card.classList.remove('on');
     }
@@ -143,9 +155,12 @@
     var fine = matchMedia('(hover: hover) and (pointer: fine)');
 
     triggers.forEach(function (t) {
-      t.setAttribute('tabindex', '0');
-      t.setAttribute('role', 'button');
-      t.setAttribute('aria-expanded', 'false');
+      var isLink = t.tagName === 'A';
+      if (!isLink) {
+        t.setAttribute('tabindex', '0');
+        t.setAttribute('role', 'button');
+        t.setAttribute('aria-expanded', 'false');
+      }
 
       t.addEventListener('mouseenter', function () {
         if (!fine.matches) return;
@@ -164,17 +179,20 @@
       t.addEventListener('focus', function () { show(t); });
       t.addEventListener('blur', hide);
 
-      t.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (open === t) hide(); else show(t);
-      });
-
-      t.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+      /* A link must still navigate, so only the plain names toggle. */
+      if (!isLink) {
+        t.addEventListener('click', function (e) {
+          e.stopPropagation();
           if (open === t) hide(); else show(t);
-        }
-      });
+        });
+
+        t.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (open === t) hide(); else show(t);
+          }
+        });
+      }
     });
 
     document.addEventListener('keydown', function (e) {
@@ -190,6 +208,16 @@
       requestAnimationFrame(function () { queued = false; if (open) place(open); });
     }, { passive: true });
     window.addEventListener('resize', function () { if (open) place(open); });
+
+    /* Warm the screenshots once the page has settled, so the first hover
+       doesn't wait on a network round trip. */
+    var warm = function () {
+      Object.keys(PROJECTS).forEach(function (k) {
+        if (PROJECTS[k].shot) { var i = new Image(); i.src = PROJECTS[k].shot; }
+      });
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 3000 });
+    else setTimeout(warm, 1800);
   }
 
   /* ══ Arrival ══════════════════════════════════════════════════════ */
@@ -276,7 +304,7 @@
       el.style.setProperty('--delay', (first ? n * 70 + 40 : 0) + 'ms');
       el.classList.add('in');
 
-      [].forEach.call(el.querySelectorAll('b'), function (b, k) {
+      [].forEach.call(el.querySelectorAll('[data-proj]'), function (b, k) {
         b.style.setProperty('--delay', (first ? n * 70 + 40 : 0) + 320 + k * 110 + 'ms');
       });
 

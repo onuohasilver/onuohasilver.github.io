@@ -105,14 +105,14 @@ p {
 }
 
 /* Product names. Weight, not bluster — over a wash that wipes itself in. */
-b {
+b, a[data-proj] {
   position: relative;
   z-index: 0;
   font-weight: 500;
   letter-spacing: 0.002em;
 }
 
-b::after {
+b::after, a[data-proj]::after {
   content: "";
   position: absolute;
   z-index: -1;
@@ -239,9 +239,11 @@ footer a { color: var(--ink); }
 }
 
 /* The wash is drawn across a product name once its paragraph has landed. */
-.js b::after { transform: scaleX(0); }
+.js b::after,
+.js a[data-proj]::after { transform: scaleX(0); }
 
-.js .in b::after {
+.js .in b::after,
+.js .in a[data-proj]::after {
   animation: draw 520ms var(--ease-out) both;
   animation-delay: var(--delay, 0ms);
 }
@@ -257,6 +259,10 @@ footer a { color: var(--ink); }
 
 b[data-proj] { cursor: help; }
 
+/* A project with a public home is a real link: it keeps the underline, so
+   the wash alone never promises something clickable. */
+a[data-proj] { cursor: pointer; }
+
 b[data-proj]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 0.2em;
@@ -269,7 +275,6 @@ b[data-proj]:focus-visible {
   left: 0;
   z-index: 20;
   width: min(19rem, calc(100vw - 24px));
-  padding: 0.85rem 0.95rem 0.9rem;
   background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 7px;
@@ -291,6 +296,17 @@ b[data-proj]:focus-visible {
   transform: none;
   transition-duration: 190ms;
 }
+
+.peek-shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 1px solid var(--rule);
+  background: var(--rule);   /* a quiet placeholder before it decodes */
+}
+
+.peek-body { padding: 0.8rem 0.95rem 0.9rem; }
 
 /* The notch points back at the name the card belongs to. */
 .peek::after {
@@ -357,6 +373,12 @@ b[data-proj]:focus-visible {
   text-wrap: pretty;
 }
 
+.peek-link {
+  display: block;
+  margin-top: 0.4em;
+  color: var(--accent);
+}
+
 .peek-stack {
   margin: 0.62rem 0 0;
   padding-top: 0.55rem;
@@ -414,7 +436,9 @@ b[data-proj]:focus-visible {
   }
 
   .js b::after,
-  .js .in b::after {
+  .js a[data-proj]::after,
+  .js .in b::after,
+  .js .in a[data-proj]::after {
     animation: none !important;
     transform: scaleX(1) !important;
   }
@@ -446,7 +470,8 @@ b[data-proj]:focus-visible {
     transform: none !important;
   }
 
-  .js b::after { transform: scaleX(1) !important; animation: none !important; }
+  .js b::after,
+  .js a[data-proj]::after { transform: scaleX(1) !important; animation: none !important; }
 
   h1 { background: none; color: #000; -webkit-text-fill-color: #000; }
   a { text-decoration-color: var(--rule); }
