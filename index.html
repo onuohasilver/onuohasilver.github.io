@@ -1,104 +1,90 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onuoha Obinna</title>
+<meta name="description" content="I build products end to end — marketplaces, developer tools, and the systems underneath. Lagos, Nigeria.">
+<meta name="author" content="Onuoha Obinna">
+<link rel="canonical" href="https://onuohasilver.github.io/">
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+<meta property="og:type" content="website">
+<meta property="og:title" content="Onuoha Obinna">
+<meta property="og:description" content="I build products end to end — marketplaces, developer tools, and the systems underneath. Lagos, Nigeria.">
+<meta property="og:url" content="https://onuohasilver.github.io/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@onuoha_data">
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+<meta name="theme-color" content="#fcfbf9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)">
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="/">
-
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="personal">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>personal</title>
-  <link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..500;1,6..72,300..400&display=swap">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- This script installs service_worker.js to provide PWA functionality to
-       application. For more information, see:
-       https://developers.google.com/web/fundamentals/primers/service-workers -->
-  <script>
-    var serviceWorkerVersion = '1302241048';
-    var scriptLoaded = false;
-    function loadMainDartJs() {
-      if (scriptLoaded) {
-        return;
-      }
-      scriptLoaded = true;
-      var scriptTag = document.createElement('script');
-      scriptTag.src = 'main.dart.js';
-      scriptTag.type = 'application/javascript';
-      document.body.append(scriptTag);
-    }
 
-    if ('serviceWorker' in navigator) {
-      // Service workers are supported. Use them.
-      window.addEventListener('load', function () {
-        // Wait for registration to finish before dropping the <script> tag.
-        // Otherwise, the browser will load the script multiple times,
-        // potentially different versions.
-        var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
-        navigator.serviceWorker.register(serviceWorkerUrl)
-          .then((reg) => {
-            function waitForActivation(serviceWorker) {
-              serviceWorker.addEventListener('statechange', () => {
-                if (serviceWorker.state == 'activated') {
-                  console.log('Installed new service worker.');
-                  loadMainDartJs();
-                }
-              });
-            }
-            if (!reg.active && (reg.installing || reg.waiting)) {
-              // No active web worker and we have installed or are installing
-              // one for the first time. Simply wait for it to activate.
-              waitForActivation(reg.installing || reg.waiting);
-            } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
-              // When the app updates the serviceWorkerVersion changes, so we
-              // need to ask the service worker to update.
-              console.log('New service worker available.');
-              reg.update();
-              waitForActivation(reg.installing);
-            } else {
-              // Existing service worker is still good.
-              console.log('Loading app from service worker.');
-              loadMainDartJs();
-            }
-          });
+<main>
+  <header>
+    <h1>Onuoha&nbsp;Obinna</h1>
+    <p class="meta">Product engineer · Lagos, Nigeria</p>
+  </header>
 
-        // If service worker doesn't succeed in a reasonable amount of time,
-        // fallback to plaint <script> tag.
-        setTimeout(() => {
-          if (!scriptLoaded) {
-            console.warn(
-              'Failed to load app from service worker. Falling back to plain <script> tag.',
-            );
-            loadMainDartJs();
-          }
-        }, 4000);
-      });
-    } else {
-      // Service workers not supported. Just drop the <script> tag.
-      loadMainDartJs();
-    }
-  </script>
+  <p class="lede">I build products end to end — the interface, the API, and the
+  parts underneath that have to be right when money moves.</p>
+
+  <p>Most of what I make falls into two groups: marketplaces that connect people
+  who need something done with people who can do it, and tools that take the
+  tedium out of the unglamorous parts of software.</p>
+
+  <p>Right now I'm building <b>Journey Studio</b>, a canvas for API journeys. You
+  chain HTTP calls together and the ids and tokens each step produces flow into
+  the next. Import an OpenAPI document or a Postman collection, or just describe
+  what you want in plain English and let it assemble the journey — then keep
+  editing it by hand. Save one and it becomes a regression test that runs in CI
+  and checks every response against the spec the API published.</p>
+
+  <p>And <b>Crow</b>, a local-services marketplace that lives inside Telegram.
+  You describe what you need the way you'd say it out loud — English or Pidgin,
+  typed or as a voice note — and Crow broadcasts the request to approved
+  providers who match. The first one to accept gets the job, and both sides talk
+  through the bot without ever trading phone numbers. A model reads the
+  conversation; Postgres decides who gets the job and who gets paid.</p>
+
+  <p>Before those, <b>CreatorMarkt</b>: brands hire creators for video and photo
+  work, the budget sits in escrow until the brand approves it, and the post is
+  then tracked across Instagram, TikTok, YouTube and X to see how it actually
+  performed. And <b>BetProphet</b>, which prices football markets from its own
+  models, finds the ones the bookmaker has wrong, and sizes the stake so a cold
+  week doesn't end the experiment.</p>
+
+  <p>I've been writing code in public <a href="https://github.com/onuohasilver">since
+  2018</a> — Flutter and Dart back then, mostly TypeScript and Python now. I'm
+  drawn to problems where the hard part is correctness rather than scale: escrow,
+  idempotency, who-accepted-first. And I'd rather build the whole thing than one
+  slice of it.</p>
+
+  <footer>
+    <p>Reach me — <a href="mailto:onuohasilver9@gmail.com">email</a>, <a href="https://github.com/onuohasilver">GitHub</a>, <a href="https://twitter.com/onuoha_data" rel="me">X</a>.</p>
+  </footer>
+</main>
+
+<script>
+// The previous version of this site was a Flutter web build that installed a
+// service worker. Clear it so returning visitors aren't served the old shell.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations()
+    .then(function (rs) { rs.forEach(function (r) { r.unregister(); }); })
+    .catch(function () {});
+  if (window.caches && caches.keys) {
+    caches.keys()
+      .then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); })
+      .catch(function () {});
+  }
+}
+</script>
+
 </body>
 </html>

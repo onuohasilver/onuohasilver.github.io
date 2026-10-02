@@ -1,0 +1,167 @@
+/* onuohasilver.github.io — one page, set as carefully as a printed page. */
+
+:root {
+  --bg:      #fcfbf9;
+  --ink:     #1a1917;
+  --muted:   #6b6762;
+  --rule:    #e4e0d8;
+  --accent:  #a8431f;
+
+  --serif: "Newsreader", ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 33rem;
+  --step:    1.6em;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:     #121110;
+    --ink:    #ecebe7;
+    --muted:  #918c84;
+    --rule:   #2b2926;
+    --accent: #e08a62;
+  }
+  body { font-weight: 380; }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: clamp(3.5rem, 9vw, 8rem) 1.5rem clamp(5rem, 12vw, 9rem);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-size: clamp(1.0625rem, 0.95rem + 0.4vw, 1.1875rem);
+  font-weight: 350;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  max-width: var(--measure);
+  margin-inline: auto;
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+
+header { margin-bottom: calc(var(--step) * 1.75); }
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 1.9rem);
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.meta {
+  margin: 0.7em 0 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Prose ──────────────────────────────────────────────── */
+
+p {
+  margin: 0 0 var(--step);
+  text-wrap: pretty;
+}
+
+.lede {
+  font-size: 1.22em;
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+}
+
+/* Product names. Weight, not bluster. */
+b {
+  font-weight: 500;
+  letter-spacing: 0.002em;
+}
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: var(--rule);
+  text-decoration-thickness: 0.055em;
+  text-underline-offset: 0.2em;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.25em;
+  border-radius: 1px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* ── Footer ─────────────────────────────────────────────── */
+
+footer {
+  margin-top: calc(var(--step) * 1.5);
+  padding-top: var(--step);
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+footer p {
+  margin: 0;
+  font-size: 0.95em;
+}
+
+footer a { color: var(--ink); }
+
+/* ── Entrance ───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: no-preference) {
+  main > * {
+    animation: rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  main > *:nth-child(1) { animation-delay:  40ms; }
+  main > *:nth-child(2) { animation-delay: 130ms; }
+  main > *:nth-child(3) { animation-delay: 190ms; }
+  main > *:nth-child(4) { animation-delay: 240ms; }
+  main > *:nth-child(5) { animation-delay: 285ms; }
+  main > *:nth-child(6) { animation-delay: 325ms; }
+  main > *:nth-child(7) { animation-delay: 360ms; }
+  main > *:nth-child(n + 8) { animation-delay: 390ms; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(0.5rem); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* ── Print ──────────────────────────────────────────────── */
+
+@media print {
+  :root { --bg: #fff; --ink: #000; --muted: #444; --rule: #bbb; --accent: #000; }
+  body { padding: 0; font-size: 11pt; }
+  main > * { animation: none; }
+  a { text-decoration-color: var(--rule); }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; color: var(--muted); }
+}
