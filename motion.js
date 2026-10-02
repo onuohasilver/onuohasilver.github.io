@@ -90,6 +90,7 @@
     function fill(key) {
       var p = PROJECTS[key];
       card.innerHTML =
+        '<div class="peek-inner">' +
         (p.shot
           ? '<img class="peek-shot" src="' + p.shot + '" alt="" width="640" height="360" decoding="async">'
           : '') +
@@ -103,7 +104,21 @@
           '<p class="peek-stack">' + p.stack +
             (p.link ? '<span class="peek-link">' + p.link + ' \u2197</span>' : '') +
           '</p>' +
+        '</div>' +
         '</div>';
+
+      var img = card.querySelector('.peek-shot');
+      if (img) {
+        if (img.complete && img.naturalWidth) img.classList.add('ready');
+        else img.addEventListener('load', function () { img.classList.add('ready'); }, { once: true });
+      }
+
+      /* pathLength normalises every shape to 100 units, so one dash length
+         draws a circle, a rect and a path at the same rate. */
+      [].forEach.call(card.querySelectorAll('.peek-mark > *'), function (el, k) {
+        el.setAttribute('pathLength', '100');
+        el.style.setProperty('--k', k);
+      });
     }
 
     function place(trigger) {
@@ -122,8 +137,10 @@
       var top = below ? r.bottom + gap : r.top - h - gap;
 
       card.classList.toggle('below', below);
-      card.style.left = Math.round(left) + 'px';
-      card.style.top = Math.round(top) + 'px';
+      /* translate3d rather than left/top: position becomes a transform, so
+         moving from one name to another can transition instead of teleport. */
+      card.style.transform =
+        'translate3d(' + Math.round(left) + 'px,' + Math.round(top) + 'px,0)';
 
       /* Point the arrow and the scale origin at the name itself. */
       var anchor = Math.max(14, Math.min(r.left + r.width / 2 - left, w - 14));
@@ -133,11 +150,25 @@
     function show(trigger) {
       clearTimeout(hideTimer);
       if (open === trigger) return;
+      var moving = !!open;          /* already open — this is a move, not an open */
       open = trigger;
+
+      /* Only a move glides. A fresh open must not slide in from wherever the
+         card was last left, so the transition is enabled per-move. */
+      card.classList.toggle('glide', moving);
       fill(trigger.dataset.proj);
-      card.classList.add('measuring');
+
+      if (moving) {
+        /* Re-trigger the swap fade so the new content doesn't hard-cut while
+           the card slides. The reflow has to land before the transform moves. */
+        card.classList.remove('swap');
+        void card.offsetWidth;
+        card.classList.add('swap');
+      } else {
+        card.classList.remove('swap');
+      }
+
       place(trigger);
-      card.classList.remove('measuring');
       card.classList.add('on');
       trigger.setAttribute('aria-describedby', 'peek');
       if (trigger.tagName !== 'A') trigger.setAttribute('aria-expanded', 'true');
@@ -149,7 +180,7 @@
       open.removeAttribute('aria-describedby');
       if (open.tagName !== 'A') open.setAttribute('aria-expanded', 'false');
       open = null;
-      card.classList.remove('on');
+      card.classList.remove('on', 'glide', 'swap');
     }
 
     var fine = matchMedia('(hover: hover) and (pointer: fine)');
@@ -218,6 +249,82 @@
     };
     if ('requestIdleCallback' in window) requestIdleCallback(warm, { timeout: 3000 });
     else setTimeout(warm, 1800);
+  }
+
+
+  /* ══ The cat ══════════════════════════════════════════════════════
+     Sleeps curled in the corner until you scroll, then sits up and
+     watches the cursor until you leave it alone again. Drawn in the
+     same line vocabulary as the card marks so it belongs here rather
+     than being a sticker stuck on top. ─────────────────────────────── */
+
+  var SLEEPING =
+    '<path d="M20 78 C13 58 31 44 52 46 C73 48 86 62 80 78 Z"/>' +
+    '<circle cx="32" cy="63" r="13"/>' +
+    '<path d="M24 54 L21 43 L33 49"/>' +
+    '<path d="M26 64 Q30 68 34 64"/>' +
+    '<path d="M80 78 C91 73 88 58 75 59"/>';
+
+  var SITTING =
+    '<path d="M35 27 L31 12 L46 21"/>' +
+    '<path d="M65 27 L69 12 L54 21"/>' +
+    '<circle cx="50" cy="36" r="17"/>' +
+    '<circle class="cat-pupil" cx="43" cy="34" r="2.6"/>' +
+    '<circle class="cat-pupil" cx="57" cy="34" r="2.6"/>' +
+    '<path d="M46 43 Q50 47 54 43"/>' +
+    '<path d="M34 50 C27 62 25 76 27 88 L73 88 C75 76 73 62 66 50"/>' +
+    '<path class="cat-tail" d="M73 88 C88 86 93 70 82 61"/>';
+
+  var ZS =
+    '<text class="z1" x="70" y="36">z</text>' +
+    '<text class="z2" x="79" y="27">z</text>' +
+    '<text class="z3" x="88" y="18">z</text>';
+
+  var cat = document.createElement('div');
+  cat.className = 'cat';
+  cat.setAttribute('aria-hidden', 'true');
+  cat.innerHTML =
+    '<svg viewBox="0 0 100 100">' +
+      '<g class="cat-sleep">' + SLEEPING + '</g>' +
+      '<g class="cat-wake">' + SITTING + '</g>' +
+      '<g class="cat-z">' + ZS + '</g>' +
+    '</svg>';
+  document.body.appendChild(cat);
+
+  /* Let the page arrive first — the cat is the last thing to turn up. */
+  setTimeout(function () { cat.classList.add('ready'); }, 1200);
+
+  var dozeTimer;
+  function wake() {
+    cat.classList.add('awake');
+    clearTimeout(dozeTimer);
+    dozeTimer = setTimeout(function () { cat.classList.remove('awake'); }, 5000);
+  }
+
+  /* Pointer movement alone doesn't wake it, or it would never sleep. */
+  window.addEventListener('scroll', wake, { passive: true });
+  cat.addEventListener('pointerenter', wake);
+  cat.addEventListener('click', function () {
+    wake();
+    cat.classList.remove('boop');
+    void cat.offsetWidth;
+    cat.classList.add('boop');
+  });
+
+  if (!still) {
+    var pupils = cat.querySelectorAll('.cat-pupil');
+    window.addEventListener('pointermove', function (e) {
+      if (!cat.classList.contains('awake')) return;
+      var r = cat.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2);
+      var dy = e.clientY - (r.top + r.height * 0.36);
+      var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      var k = Math.min(1, d / 200) * 3;      /* user units, so ~2px on screen */
+      var x = (dx / d) * k, y = (dy / d) * k;
+      [].forEach.call(pupils, function (p) {
+        p.style.transform = 'translate(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px)';
+      });
+    }, { passive: true });
   }
 
   /* ══ Arrival ══════════════════════════════════════════════════════ */
