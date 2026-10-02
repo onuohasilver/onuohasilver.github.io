@@ -1,5 +1,6 @@
-/* Motion. Everything here is progressive enhancement: with JS off, or with
-   reduced motion on, the page is already complete and this only removes work. */
+/* Motion and project previews. All of it is progressive enhancement: with JS
+   off, or with reduced motion on, the page is already complete and this only
+   removes work. */
 
 (function () {
   'use strict';
@@ -19,6 +20,179 @@
         .catch(function () {});
     }
   }
+
+  /* ══ Project previews ═════════════════════════════════════════════
+     Hovering a product name opens a small card about it. Keyboard gets
+     the same thing on focus; touch toggles it on tap. Runs whatever the
+     motion preference — reduced motion means a gentler transition, not
+     a missing feature. ─────────────────────────────────────────────── */
+
+  var PROJECTS = {
+    journey: {
+      title: 'Journey Studio',
+      kind: 'Developer tool',
+      desc: 'Chain HTTP calls on a canvas so the ids and tokens each step ' +
+            'returns feed the next. Save one and it runs in CI as a regression test.',
+      stack: 'React Flow · Express · Zustand',
+      mark: '<circle cx="8" cy="11" r="3.6"/><circle cx="31" cy="8" r="3.6"/>' +
+            '<circle cx="25" cy="30" r="3.6"/><path d="M11.5 10.4 27.5 8.4"/>' +
+            '<path d="M30.2 11.5 26 26.5"/>'
+    },
+    crow: {
+      title: 'Crow',
+      kind: 'Marketplace',
+      desc: 'Describe a job in Telegram, in English or Pidgin, typed or spoken. ' +
+            'It goes out to approved providers and the first to accept takes it.',
+      stack: 'Fastify · Postgres · Paystack',
+      mark: '<circle cx="9" cy="20" r="3.4"/><path d="M15 20h7"/>' +
+            '<path d="M14.6 17.6 22 10.5"/><path d="M14.6 22.4 22 29.5"/>' +
+            '<circle cx="26" cy="20" r="2.2"/><circle cx="25" cy="8.5" r="2.2"/>' +
+            '<circle cx="25" cy="31.5" r="2.2"/>'
+    },
+    creatormarkt: {
+      title: 'CreatorMarkt',
+      kind: 'Marketplace',
+      desc: 'Brands hire creators for video and photo work. The budget waits in ' +
+            'escrow until the brand approves, then the post is tracked across four platforms.',
+      stack: 'Next.js · Drizzle · Paystack',
+      mark: '<circle cx="7.5" cy="20" r="3.6"/><circle cx="32.5" cy="20" r="3.6"/>' +
+            '<rect x="15" y="14.5" width="10" height="11" rx="2"/>' +
+            '<path d="M11.2 20h3.6M25.2 20h3.6"/><path d="M20 18.2v3.4"/>'
+    },
+    betprophet: {
+      title: 'BetProphet',
+      kind: 'Modelling',
+      desc: 'Prices football markets from its own models, flags the ones the ' +
+            'bookmaker has wrong, and sizes the stake so a cold week survives.',
+      stack: 'FastAPI · APScheduler · Twilio',
+      mark: '<path d="M4 30c8 0 7-18 16-18s8 18 16 18"/><path d="M28 30.5V19.5"/>' +
+            '<circle cx="28" cy="17" r="2.2"/>'
+    }
+  };
+
+  var triggers = [].slice.call(document.querySelectorAll('b[data-proj]'));
+
+  if (triggers.length && window.matchMedia) {
+    var card = document.createElement('div');
+    card.className = 'peek';
+    card.id = 'peek';
+    card.setAttribute('role', 'tooltip');
+    document.body.appendChild(card);
+
+    var open = null;      /* the trigger the card currently belongs to */
+    var showTimer, hideTimer;
+
+    function fill(key) {
+      var p = PROJECTS[key];
+      card.innerHTML =
+        '<div class="peek-head">' +
+          '<svg class="peek-mark" viewBox="0 0 40 40" aria-hidden="true">' + p.mark + '</svg>' +
+          '<span class="peek-id"><span class="peek-title">' + p.title + '</span>' +
+          '<span class="peek-kind">' + p.kind + '</span></span>' +
+        '</div>' +
+        '<p class="peek-desc">' + p.desc + '</p>' +
+        '<p class="peek-stack">' + p.stack + '</p>';
+    }
+
+    function place(trigger) {
+      var r = trigger.getBoundingClientRect();
+      var w = card.offsetWidth;
+      var h = card.offsetHeight;
+      var gutter = 12;
+      var gap = 10;
+
+      var left = r.left + r.width / 2 - w / 2;
+      left = Math.max(gutter, Math.min(left, window.innerWidth - w - gutter));
+
+      /* Above by default; below when there isn't room, so it never
+         covers the line you're reading on a short viewport. */
+      var below = r.top - h - gap < gutter;
+      var top = below ? r.bottom + gap : r.top - h - gap;
+
+      card.classList.toggle('below', below);
+      card.style.left = Math.round(left) + 'px';
+      card.style.top = Math.round(top) + 'px';
+
+      /* Point the arrow and the scale origin at the name itself. */
+      var anchor = Math.max(14, Math.min(r.left + r.width / 2 - left, w - 14));
+      card.style.setProperty('--anchor', Math.round(anchor) + 'px');
+    }
+
+    function show(trigger) {
+      clearTimeout(hideTimer);
+      if (open === trigger) return;
+      open = trigger;
+      fill(trigger.dataset.proj);
+      card.classList.add('measuring');
+      place(trigger);
+      card.classList.remove('measuring');
+      card.classList.add('on');
+      trigger.setAttribute('aria-describedby', 'peek');
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    function hide() {
+      clearTimeout(showTimer);
+      if (!open) return;
+      open.removeAttribute('aria-describedby');
+      open.setAttribute('aria-expanded', 'false');
+      open = null;
+      card.classList.remove('on');
+    }
+
+    var fine = matchMedia('(hover: hover) and (pointer: fine)');
+
+    triggers.forEach(function (t) {
+      t.setAttribute('tabindex', '0');
+      t.setAttribute('role', 'button');
+      t.setAttribute('aria-expanded', 'false');
+
+      t.addEventListener('mouseenter', function () {
+        if (!fine.matches) return;
+        clearTimeout(hideTimer);
+        /* A little intent delay, or the card flickers at every name the
+           pointer crosses on its way down the page. */
+        showTimer = setTimeout(function () { show(t); }, 130);
+      });
+
+      t.addEventListener('mouseleave', function () {
+        if (!fine.matches) return;
+        clearTimeout(showTimer);
+        hideTimer = setTimeout(hide, 110);
+      });
+
+      t.addEventListener('focus', function () { show(t); });
+      t.addEventListener('blur', hide);
+
+      t.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (open === t) hide(); else show(t);
+      });
+
+      t.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (open === t) hide(); else show(t);
+        }
+      });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') hide();
+    });
+    document.addEventListener('click', function () { hide(); });
+
+    /* Keep it pinned to its name while the page moves under it. */
+    var queued = false;
+    window.addEventListener('scroll', function () {
+      if (!open || queued) return;
+      queued = true;
+      requestAnimationFrame(function () { queued = false; if (open) place(open); });
+    }, { passive: true });
+    window.addEventListener('resize', function () { if (open) place(open); });
+  }
+
+  /* ══ Arrival ══════════════════════════════════════════════════════ */
 
   /* No observer, no staged reveal — let the failsafe uncover the page. */
   if (!('IntersectionObserver' in window)) return;
@@ -56,8 +230,8 @@
     var chars = target.split('');
     var settled = chars.map(function (c) { return /[a-z]/i.test(c) ? 0 : 1; });
     var start = null;
-    var SPAN = 760;   /* whole run */
-    var LEAD = 420;   /* how far the resolve front leads the tail */
+    var SPAN = 760;
+    var LEAD = 420;
 
     meta.textContent = chars.map(function (c, i) {
       return settled[i] ? c : GLYPHS[(i * 7) % GLYPHS.length];
@@ -102,8 +276,6 @@
       el.style.setProperty('--delay', (first ? n * 70 + 40 : 0) + 'ms');
       el.classList.add('in');
 
-      /* Product names get their rule drawn under them, one after the next,
-         once the paragraph itself has arrived. */
       [].forEach.call(el.querySelectorAll('b'), function (b, k) {
         b.style.setProperty('--delay', (first ? n * 70 + 40 : 0) + 320 + k * 110 + 'ms');
       });

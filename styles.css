@@ -17,6 +17,10 @@
      link, and these aren't clickable. */
   --wash: rgba(168, 67, 31, 0.12);
 
+  --surface: #ffffff;
+  --shadow:  0 1px 2px rgba(26, 25, 23, 0.05),
+             0 10px 28px -8px rgba(26, 25, 23, 0.16);
+
   /* The built-in curves are too weak to read as deliberate. */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
@@ -28,7 +32,10 @@
     --muted:  #918c84;
     --rule:   #2b2926;
     --accent: #e08a62;
-    --wash:   rgba(224, 138, 98, 0.17);
+    --wash:    rgba(224, 138, 98, 0.17);
+    --surface: #1d1c1a;
+    --shadow:  0 1px 2px rgba(0, 0, 0, 0.45),
+               0 12px 32px -10px rgba(0, 0, 0, 0.7);
   }
   body { font-weight: 380; }
 }
@@ -244,6 +251,122 @@ footer a { color: var(--ink); }
   to   { transform: scaleX(1); }
 }
 
+/* ── Project previews ───────────────────────────────────── */
+/* A name is only interactive once JS has wired it up, so the cursor and
+   focus ring are scoped to the attribute the script looks for. */
+
+b[data-proj] { cursor: help; }
+
+b[data-proj]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.2em;
+  border-radius: 2px;
+}
+
+.peek {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: min(19rem, calc(100vw - 24px));
+  padding: 0.85rem 0.95rem 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  box-shadow: var(--shadow);
+  pointer-events: none;   /* never let the card block the prose under it */
+  opacity: 0;
+  transform: translateY(4px) scale(0.975);
+  transform-origin: var(--anchor, 50%) 100%;
+  transition: opacity 120ms ease, transform 120ms var(--ease-out);
+}
+
+.peek.below {
+  transform: translateY(-4px) scale(0.975);
+  transform-origin: var(--anchor, 50%) 0;
+}
+
+.peek.on {
+  opacity: 1;
+  transform: none;
+  transition-duration: 190ms;
+}
+
+/* The notch points back at the name the card belongs to. */
+.peek::after {
+  content: "";
+  position: absolute;
+  left: var(--anchor, 50%);
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  background: var(--surface);
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  transform: rotate(45deg);
+}
+
+.peek.below::after {
+  bottom: auto;
+  top: -5px;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
+}
+
+.peek-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.peek-mark {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.peek-id { display: flex; flex-direction: column; }
+
+.peek-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.peek-kind {
+  margin-top: 0.2em;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.peek-desc {
+  margin: 0.65rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.peek-stack {
+  margin: 0.62rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
 /* ── The name, on hover ─────────────────────────────────── */
 /* A single accent wipe across the text. One element, no letter spans,
    so selection and screen readers are untouched. */
@@ -300,6 +423,13 @@ footer a { color: var(--ink); }
 
   a { transition: color 120ms ease, opacity 120ms ease; }
   h1 { transition: none; }
+
+  .peek,
+  .peek.below,
+  .peek.on {
+    transform: none;
+    transition: opacity 120ms ease;
+  }
 }
 
 /* ── Print ──────────────────────────────────────────────── */
@@ -307,7 +437,7 @@ footer a { color: var(--ink); }
 @media print {
   :root { --bg: #fff; --ink: #000; --muted: #444; --rule: #bbb; --accent: #000; }
   body { padding: 0; font-size: 11pt; }
-  .progress { display: none; }
+  .progress, .peek { display: none; }
 
   .js main > *,
   .js .lede .w {
